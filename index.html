@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0e6d0;
+      --panel: #d4b896;
+      --border: #8a6a40;
+      --display-bg: #1c2a18;
+      --display-green: #4dff91;
+      --display-dim: #1e6b3a;
+      --text-btn: #2a1a08;
+      --btn-num: #c8a870;
+      --btn-num-side: #7a5c30;
+      --btn-op: #e07830;
+      --btn-op-side: #8a4010;
+      --btn-clear: #c03020;
+      --btn-clear-side: #701808;
+      --btn-eq: #2a6820;
+      --btn-eq-side: #143810;
+      --muted: #8a6a40;
+      --shadow: 0 20px 60px rgba(80,40,0,0.5);
+      --radius: 10px;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      font-family: 'Oswald', sans-serif;
+      background-image:
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a07840' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .calc-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+      align-self: flex-start;
+      padding-left: 4px;
+    }
+
+    .calculator {
+      background: var(--panel);
+      border: 3px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      width: 340px;
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255,240,200,0.5),
+        inset 0 -2px 0 rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    /* Rivet decorations */
+    .calculator::before, .calculator::after {
+      content: '';
+      position: absolute;
+      width: 10px; height: 10px;
+      background: radial-gradient(circle at 35% 35%, #e0c890, #8a6030);
+      border-radius: 50%;
+      border: 1px solid #6a4820;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+      top: 10px;
+    }
+    .calculator::before { left: 12px; }
+    .calculator::after  { right: 12px; }
+
+    /* Brand strip */
+    .brand {
+      text-align: center;
+      font-family: 'Oswald', sans-serif;
+      font-size: 10px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: #7a5030;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(100,60,20,0.3);
+    }
+
+    /* Display — green phosphor screen */
+    .display {
+      background: var(--display-bg);
+      border: 3px solid #0a1808;
+      border-radius: 6px;
+      padding: 14px 18px 10px;
+      margin-bottom: 18px;
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-end;
+      gap: 4px;
+      overflow: hidden;
+      box-shadow:
+        inset 0 4px 16px rgba(0,0,0,0.8),
+        inset 0 0 40px rgba(0,80,20,0.2),
+        0 2px 0 rgba(255,200,80,0.2);
+    }
+
+    .expression {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      color: var(--display-dim);
+      min-height: 18px;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .result {
+      font-family: 'Courier Prime', monospace;
+      font-size: 40px;
+      color: var(--display-green);
+      word-break: break-all;
+      text-align: right;
+      line-height: 1;
+      text-shadow: 0 0 8px rgba(77,255,145,0.6), 0 0 20px rgba(77,255,145,0.2);
+    }
+
+    /* Buttons grid */
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    /* 3D raised button */
+    button {
+      font-family: 'Oswald', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      padding: 15px 0;
+      cursor: pointer;
+      color: var(--text-btn);
+      background: linear-gradient(180deg, #dfc080 0%, var(--btn-num) 100%);
+      box-shadow:
+        0 5px 0 var(--btn-num-side),
+        0 7px 8px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,200,0.5);
+      transition: transform 0.07s, box-shadow 0.07s;
+      position: relative;
+      user-select: none;
+      letter-spacing: 1px;
+    }
+
+    button:hover { filter: brightness(1.08); }
+
+    button:active {
+      transform: translateY(4px);
+      box-shadow:
+        0 1px 0 var(--btn-num-side),
+        0 2px 4px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,200,0.3);
+    }
+
+    button.op {
+      background: linear-gradient(180deg, #f09850 0%, var(--btn-op) 100%);
+      box-shadow: 0 5px 0 var(--btn-op-side), 0 7px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,200,150,0.5);
+      color: #fff8f0;
+    }
+    button.op:active { box-shadow: 0 1px 0 var(--btn-op-side), 0 2px 4px rgba(0,0,0,0.3); transform: translateY(4px); }
+
+    button.clear {
+      background: linear-gradient(180deg, #e05040 0%, var(--btn-clear) 100%);
+      box-shadow: 0 5px 0 var(--btn-clear-side), 0 7px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,180,160,0.4);
+      color: #fff0ee;
+    }
+    button.clear:active { box-shadow: 0 1px 0 var(--btn-clear-side), 0 2px 4px rgba(0,0,0,0.3); transform: translateY(4px); }
+
+    button.equals {
+      background: linear-gradient(180deg, #4a9030 0%, var(--btn-eq) 100%);
+      box-shadow: 0 5px 0 var(--btn-eq-side), 0 7px 8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(180,255,160,0.4);
+      color: #e0ffe0;
+      grid-column: span 2;
+      font-size: 22px;
+      letter-spacing: 2px;
+    }
+    button.equals:active { box-shadow: 0 1px 0 var(--btn-eq-side), 0 2px 4px rgba(0,0,0,0.3); transform: translateY(4px); }
+
+    button.zero { grid-column: span 1; }
+
+    @keyframes flash {
+      0% { color: #fff; text-shadow: 0 0 20px rgba(77,255,145,1); }
+      100% { color: var(--display-green); text-shadow: 0 0 8px rgba(77,255,145,0.6); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="calc-wrap">
+  <div class="label">Calculator</div>
+  <div class="calculator">
+    <div class="brand">Electro-Calc · Model 1974</div>
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="buttons">
+      <!-- Row 1 -->
+      <button class="clear" onclick="clearAll()" style="grid-column: span 3;">AC</button>
+      <button class="op" onclick="inputOp('/')">÷</button>
+
+      <!-- Row 2 -->
+      <button class="num" onclick="inputNum('7')">7</button>
+      <button class="num" onclick="inputNum('8')">8</button>
+      <button class="num" onclick="inputNum('9')">9</button>
+      <button class="op" onclick="inputOp('*')">×</button>
+
+      <!-- Row 3 -->
+      <button class="num" onclick="inputNum('4')">4</button>
+      <button class="num" onclick="inputNum('5')">5</button>
+      <button class="num" onclick="inputNum('6')">6</button>
+      <button class="op" onclick="inputOp('-')">−</button>
+
+      <!-- Row 4 -->
+      <button class="num" onclick="inputNum('1')">1</button>
+      <button class="num" onclick="inputNum('2')">2</button>
+      <button class="num" onclick="inputNum('3')">3</button>
+      <button class="op" onclick="inputOp('+')">+</button>
+
+      <!-- Row 5 -->
+      <button class="num zero" onclick="inputNum('0')">0</button>
+      <button class="num" onclick="inputDot()">.</button>
+      <button class="equals" onclick="calculate()">=</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let expr = '';
+
+  const resultEl = document.getElementById('result');
+  const exprEl = document.getElementById('expression');
+
+  function inputNum(n) {
+    expr += n;
+    resultEl.textContent = expr;
+  }
+
+  function inputOp(op) {
+    expr += op;
+    resultEl.textContent = expr;
+  }
+
+  function inputDot() {
+    expr += '.';
+    resultEl.textContent = expr;
+  }
+
+  function clearAll() {
+    expr = '';
+    resultEl.textContent = '0';
+    exprEl.textContent = '';
+  }
+
+  function calculate() {
+    try {
+      const res = eval(expr);
+      exprEl.textContent = expr + ' =';
+      resultEl.textContent = res;
+      expr = String(res);
+    } catch {
+      resultEl.textContent = 'Error';
+      expr = '';
+    }
+  }
+</script>
+</body>
+</html>
